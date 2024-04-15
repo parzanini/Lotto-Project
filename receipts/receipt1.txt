@@ -1,0 +1,14 @@
+************************************
+
+Lotto Game Receipt
+Game ID: 1
+Game Numbers: 
+4
+13
+22
+25
+Game Result: TO_BE_DETERMINED
+
+Thank you for playing! Good luck!
+
+************************************

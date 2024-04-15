@@ -1,6 +1,7 @@
 package classes;
 
 public enum LottoResult {
-
-    Win, Loss;
+    WIN,
+    LOSS,
+    TO_BE_DETERMINED // No draw has been made yet
 }
