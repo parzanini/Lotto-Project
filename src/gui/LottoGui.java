@@ -1,10 +1,14 @@
 package gui;
 
 import classes.LottoGame;
+import classes.LottoResult;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,12 +19,13 @@ import java.util.Random;
 public class LottoGui {
 
     ArrayList<Integer> buttons = new ArrayList<>(); // List to hold the picked numbers (by button click)
-    ArrayList<LottoGame> games = new ArrayList<>(); // List to hold the purchased games
+    static ArrayList<LottoGame> games = new ArrayList<>(); // List to hold the purchased games
     LottoGame game; // LottoGame object to hold the current game
     int counter = 0; // Counter to keep track of how many numbers are picked
     int[] numbersPicked = new int[4]; // Array to hold the picked numbers
-    int[] drawResults = new int[4]; // Array to hold the draw results
+    static int[] drawResults = new int[4]; // Array to hold the draw results
     boolean draw = false; // Flag to indicate if a draw has been made, Will be used in the check Results in the future
+    int winCounter = 0; // Counter to keep track of how many games are won
 
     Random random = new Random();
     private JPanel rootPanel;
@@ -74,8 +79,10 @@ public class LottoGui {
     private JPanel ButtonsPanel;
     private JLabel mainLabelLeft;
     private JLabel mainLabelRight;
+    private JLabel headerLabel;
+    private JButton resetButton;
 
-// List of buttons, at click of a button, the number will be added to the list of buttons and checkCounter method will be called
+    // List of buttons, at click of a button, the number will be added to the list of buttons and checkCounter method will be called
     public LottoGui() {
         a1Button.addActionListener(new ActionListener() {
             @Override
@@ -387,6 +394,9 @@ public class LottoGui {
                         } catch (IOException exception) {
                             JOptionPane.showMessageDialog(null, "Error opening receipt file");
                         }
+                    }else {
+                       //Only the receipt will be created
+                        game.newReceipt();
                     }
                 }
             }
@@ -403,6 +413,27 @@ public class LottoGui {
                 //if the game numbers match the draw results, set the game result to WIN
                 //if the game numbers do not match the draw results, set the game result to LOSS
                 // return the array of LottoResult
+                if (!draw) {
+                    // Show an error message if the draw has not been made
+                    JOptionPane.showMessageDialog(null, "Please make a draw first", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+
+                for (LottoGame game : games) {
+                    if (game.getGameNumbers()[0] == drawResults[0] && game.getGameNumbers()[1] == drawResults[1] && game.getGameNumbers()[2] == drawResults[2] && game.getGameNumbers()[3] == drawResults[3]) {
+                        game.setResult(LottoResult.WIN);
+
+                        game.newReceipt();
+                        winCounter++;
+                    } else {
+                        game.setResult(LottoResult.LOSS);
+                        game.newReceipt();
+
+                    }
+                }
+
+
+
+
 
                 //**************************************************************************
                 // Close the current JFrame (mainFrame)
@@ -414,12 +445,21 @@ public class LottoGui {
 
                 // Create a new instance of the LottoResultGui
                 LottoResultGui resultGui = new LottoResultGui();
+                LottoGame lottoGame = new LottoGame();
 
                 // Set the content pane of the new JFrame to the LottoResultGui
                 frame.setContentPane(resultGui.getRootPanel());
 
-                // Set default close operation for the frame
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    // Add a WindowListener to the frame
+                    frame.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosing(WindowEvent e) {
+                            lottoGame.resetGame(); // Reset the game
+                            frame.dispose();  // Dispose the frame after reset
+                        }
+                    });
+
+
 
                 // Pack the frame to size
                 frame.pack();
@@ -430,13 +470,48 @@ public class LottoGui {
                 // Make the frame visible
                 frame.setVisible(true);
             }
+        }
+        });
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Clear the game selection
+                clearGame();
+                // Enable the makeDrawButton
+                makeDrawButton.setEnabled(true);
+                draw = false;
+                // Enable the purchaseButton
+                purchaseButton.setEnabled(true);
+                // Reset the header label
+                headerLabel.setFont(new Font("Arial", Font.BOLD, 36));
+                headerLabel.setText("Welcome");
+                // Remove all games from the games list
+                games.clear();
+                // Reset the drawResults array
+                for (int i = 0; i < 4; i++) {
+                    drawResults[i] = 0;
+                }
+                LottoGame lottoGame = new LottoGame();
+                lottoGame.resetGame();
+            }
         });
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Napoleon Cricket Club Lotto");
+        LottoGame lottoGame = new LottoGame();
         frame.setContentPane(new LottoGui().rootPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close
+
+        // Add a WindowListener to the frame
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                lottoGame.resetGame(); // Reset the game
+                frame.dispose();  // Dispose the frame after reset
+            }
+        });
+
         frame.pack();
         frame.setLocationRelativeTo(null); // Center  JFrame
         frame.setVisible(true);
@@ -526,5 +601,25 @@ public class LottoGui {
         for (int number : numbersToCheck) {
             checkCounter(number);
         }
+    }
+    public JPanel getRootPanel() {
+        return rootPanel;
+    }
+    public static ArrayList<LottoGame> getGames() {
+        return games;
+    }
+
+    public static int [] getDrawResults() {
+        return drawResults;
+    }
+    public void setDraw() {
+        draw = true;
+        makeDrawButton.setEnabled(false);
+        purchaseButton.setEnabled(false);
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        headerLabel.setText("Draw has been made, you can not make another draw or purchase a game, please reset the game to start over");
+    }
+    public int getWinCounter() {
+        return winCounter;
     }
 }
