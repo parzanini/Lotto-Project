@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import static java.lang.System.exit;
+
 
 public class LottoGui {
 
@@ -390,7 +392,7 @@ public class LottoGui {
                         String fileName = "receipt" + game.getId() + ".txt";
                         try {
                             // code to open the receipt using the default application for .txt files
-                            Desktop.getDesktop().open(new File(System.getProperty("user.dir") + File.separator + "receipts" + File.separator + fileName));
+                            Desktop.getDesktop().open(new File(System.getProperty("user.dir") + File.separator + "LottoGame" + File.separator + fileName));
                         } catch (IOException exception) {
                             JOptionPane.showMessageDialog(null, "Error opening receipt file");
                         }
@@ -445,17 +447,26 @@ public class LottoGui {
 
                 // Create a new instance of the LottoResultGui
                 LottoResultGui resultGui = new LottoResultGui();
-                LottoGame lottoGame = new LottoGame();
+
+
 
                 // Set the content pane of the new JFrame to the LottoResultGui
                 frame.setContentPane(resultGui.getRootPanel());
+
+                    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close
 
                     // Add a WindowListener to the frame
                     frame.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {
-                            lottoGame.resetGame(); // Reset the game
-                            frame.dispose();  // Dispose the frame after reset
+                            // Display a confirmation dialog
+                            int option = JOptionPane.showConfirmDialog(frame, "Are you sure you want to exit the application?A folder named LottoGame will be created in the current directory to store the game receipts and a report will be generated", "Exit Application", JOptionPane.YES_NO_OPTION);
+                            if (option == JOptionPane.YES_OPTION) {
+                                LottoGame lottoGame = new LottoGame();
+                                // If the user confirms, close the frame
+                                lottoGame.backupFolder(); // Reset the game
+                                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                            }
                         }
                     });
 
@@ -492,14 +503,14 @@ public class LottoGui {
                     drawResults[i] = 0;
                 }
                 LottoGame lottoGame = new LottoGame();
-                lottoGame.resetGame();
+                lottoGame.backupFolder();
             }
         });
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Napoleon Cricket Club Lotto");
-        LottoGame lottoGame = new LottoGame();
+
         frame.setContentPane(new LottoGui().rootPanel);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close
 
@@ -507,7 +518,8 @@ public class LottoGui {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                lottoGame.resetGame(); // Reset the game
+                LottoGame lottoGame = new LottoGame();
+                lottoGame.backupFolder(); // Reset the game
                 frame.dispose();  // Dispose the frame after reset
             }
         });

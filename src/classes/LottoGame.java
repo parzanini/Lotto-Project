@@ -1,5 +1,7 @@
 package classes;
 
+import gui.LottoGui;
+
 import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -7,13 +9,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class LottoGame {
 
+    private static int nextId = 0; // Variable to store the next game ID and keep track of the games played
     private int id = 0;  // Variable to store the game ID
     private int[] gameNumbers; // Array to store the numbers selected by the player
     private LottoResult result; // Enum to store the result of the game
-    private static int nextId = 0; // Variable to store the next game ID and keep track of the games played
     private LocalDateTime currentDateTime; // Variable to store the current date and time
 
     public LottoGame(int[] gameNumbers) {
@@ -22,24 +25,32 @@ public class LottoGame {
         this.result = LottoResult.TO_BE_DETERMINED; // Set the result to TO_BE_DETERMINED, this will be updated after the draw
         this.currentDateTime = LocalDateTime.now(); // Set the current date and time
     }
-// Default constructor
+
+    // Default constructor
     public LottoGame() {
 
     }
 
+    public static int getNextId() {
+        return nextId;
+    }
+
+    public static void setNextId(int nextId) {
+        LottoGame.nextId = nextId;
+    }
 
     public void newReceipt() {
 
         // Create a new receipt file for the game
         String fileName = "receipt" + id + ".txt";  // File name will be receipt followed by the game ID
         // Path to the file, System.getProperty("user.dir") returns the current working directory
-        String path = System.getProperty("user.dir") + File.separator + "receipts" + File.separator + fileName;  // Path to the file (// did not work , so the solution I found was to  use File.separator instead)
+        String path = System.getProperty("user.dir") + File.separator + "LottoGame" + File.separator + fileName;  // Path to the file (// did not work , so the solution I found was to  use File.separator instead)
         File file = new File(path); // Create a new file object
         if (file.exists()) {    // If the file already exists, delete it
             file.delete();
         }
-        File directory = new File(System.getProperty("user.dir") + File.separator + "receipts");    // Create a directory to store the receipts
-       // If the directory does not exist, create it
+        File directory = new File(System.getProperty("user.dir") + File.separator + "LottoGame");    // Create a directory to store the LottoGame
+        // If the directory does not exist, create it
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -68,24 +79,40 @@ public class LottoGame {
     }
 
     // Method to check reset game and delete the receipt file
-    public void resetGame() {
+    public void backupFolder() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm");
+        String dateBackup = LocalDateTime.now().format(formatter);
         try {
-        String path = System.getProperty("user.dir") + File.separator + "receipts" ;  // Path to the file
-        File directory = new File(path); // Create a new file object
-        if (directory.exists()) {    // If the directory exists, delete its contents
-            for(File file: directory.listFiles()) { //In Java, you cannot delete a directory if it is not empty.
-                file.delete();
+            String path = System.getProperty("user.dir") + File.separator + "LottoGame";
+            File directory = new File(path);
+            if (directory.isDirectory()) {
+                directory.renameTo(new File(path + " " + dateBackup));
+            } else {
+                System.out.println("Error creating backup folder, please check if any game has been sold");
             }
-            directory.delete(); // Then delete the directory
-            JOptionPane.showMessageDialog(null, "Game reset successfully");
-        } else {
-            JOptionPane.showMessageDialog(null, "No game to reset");
-        }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error resetting game");
+            JOptionPane.showMessageDialog(null, "Error creating backup folder");
+        }
+        try {
+            String newPath = System.getProperty("user.dir") + File.separator + "LottoGame " + dateBackup + File.separator + "FinalReport.txt";
+            FileWriter fileWriter = new FileWriter(newPath); // Create a new file writer
+            PrintWriter printWriter = new PrintWriter(fileWriter);  // Create a new print writer
+            // Report Content
+            LottoGui lottoGui = new LottoGui();
+            printWriter.println("************************************\n");
+            printWriter.println("Final Report");
+            printWriter.println("Lotto Game " + dateBackup + "\n\n");
+            printWriter.println("Numbers Drawn: " + Arrays.toString(LottoGui.getDrawResults()));
+            printWriter.println("Number of Games Played: " + getNextId());
+            printWriter.println("Number of Winner Games: " + lottoGui.getWinCounter());
+            printWriter.println("************************************");
+            printWriter.close();
+        } catch (IOException e) {
+            System.out.println("Error creating final report file, check if any game has been played");
         }
     }
-// Getters and setters
+
+    // Getters and setters
     public int[] getGameNumbers() {
         return gameNumbers;
     }
@@ -110,11 +137,11 @@ public class LottoGame {
         this.id = id;
     }
 
-    public static int getNextId() {
-        return nextId;
+    public LocalDateTime getCurrentDateTime() {
+        return currentDateTime;
     }
 
-    public static void setNextId(int nextId) {
-        LottoGame.nextId = nextId;
+    public void setCurrentDateTime(LocalDateTime currentDateTime) {
+        this.currentDateTime = currentDateTime;
     }
 }

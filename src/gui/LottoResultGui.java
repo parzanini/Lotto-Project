@@ -31,6 +31,7 @@ public class LottoResultGui {
 
 
     public LottoResultGui() {
+
         returnToMainPanelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -43,17 +44,25 @@ public class LottoResultGui {
                 JFrame frame = new JFrame("Napoleon Cricket Club Lotto");
 
                 LottoGui lottoGui = new LottoGui();
-                LottoGame lottoGame = new LottoGame();
+
 
                 // Set the content pane of the new JFrame to the LottoResultGui
                 frame.setContentPane(lottoGui.getRootPanel());
+                // Add a WindowListener to the frame
+                frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close
 
                 // Add a WindowListener to the frame
                 frame.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
-                        lottoGame.resetGame(); // Reset the game
-                        frame.dispose();  // Dispose the frame after reset
+                        // Display a confirmation dialog
+                        int option = JOptionPane.showConfirmDialog(frame, "Are you sure you want to exit the application?A folder named LottoGame will be created in the current directory to store the game receipts and a report will be generated", "Exit Application", JOptionPane.YES_NO_OPTION);
+                        if (option == JOptionPane.YES_OPTION) {
+                            LottoGame lottoGame = new LottoGame();
+                            // If the user confirms, close the frame
+                            lottoGame.backupFolder(); // Reset the game
+                            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                        }
                     }
                 });
 
@@ -71,11 +80,16 @@ public class LottoResultGui {
         detailsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Get the selected game from the list of games
-                String selectedGame = (String) listOfGames.getSelectedValue();
-                String[] parts = selectedGame.split(" ");
-                int gameId = Integer.parseInt(parts[2]);
-                getGameById(gameId);
+                try {
+                    // Get the selected game from the list of games
+                    String selectedGame = (String) listOfGames.getSelectedValue();
+                    String[] parts = selectedGame.split(" ");
+                    int gameId = Integer.parseInt(parts[2]);
+                    getGameById(gameId);
+                } catch (NullPointerException ex) {
+                    JOptionPane.showMessageDialog(null, "Please select a game to view details");
+                }
+
             }
         }
         );
@@ -154,7 +168,7 @@ public class LottoResultGui {
     private void getGameById(int gameId) {
         // Open the receipt file for the selected game
         String fileName = "receipt" + gameId + ".txt";  // File name will be receipt followed by the game ID
-        String path = System.getProperty("user.dir") + java.io.File.separator + "receipts" + java.io.File.separator + fileName;  // Path to the file
+        String path = System.getProperty("user.dir") + java.io.File.separator + "LottoGame" + java.io.File.separator + fileName;  // Path to the file
         java.io.File file = new java.io.File(path); // Create a new file object
         try {
             // Open the file using the default text editor
