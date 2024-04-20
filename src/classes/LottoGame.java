@@ -28,7 +28,6 @@ public class LottoGame {
 
     // Default constructor
     public LottoGame() {
-
     }
 
     public static int getNextId() {
@@ -78,11 +77,11 @@ public class LottoGame {
         }
     }
 
-    // Method to check reset game and delete the receipt file
-    public void backupFolder() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm");
+    // Method to save the game results to and create a final report (Extra feature)
+    public void saveGame() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"); // Create a DateTimeFormatter with a custom pattern
         String dateBackup = LocalDateTime.now().format(formatter);
-        try {
+        try { //Find the directory and rename it
             String path = System.getProperty("user.dir") + File.separator + "LottoGame";
             File directory = new File(path);
             if (directory.isDirectory()) {
@@ -93,6 +92,7 @@ public class LottoGame {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error creating backup folder");
         }
+        // Create a new final report file
         try {
             String newPath = System.getProperty("user.dir") + File.separator + "LottoGame " + dateBackup + File.separator + "FinalReport.txt";
             FileWriter fileWriter = new FileWriter(newPath); // Create a new file writer
@@ -117,10 +117,6 @@ public class LottoGame {
         return gameNumbers;
     }
 
-    public void setGameNumbers(int[] gameNumbers) {
-        this.gameNumbers = gameNumbers;
-    }
-
     public LottoResult getResult() {
         return result;
     }
@@ -133,15 +129,4 @@ public class LottoGame {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getCurrentDateTime() {
-        return currentDateTime;
-    }
-
-    public void setCurrentDateTime(LocalDateTime currentDateTime) {
-        this.currentDateTime = currentDateTime;
-    }
 }

@@ -12,12 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class LottoResultGui {
-
-    LottoGui lottoGui = new LottoGui();
+    // Instance variables
     private ArrayList<LottoGame> games; // ArrayList to store the games played
     private int[] drawNumbers; // Array to store the numbers drawn in the game
     private int gamesPlayed; // Variable to store the number of games played
-    // Layout to be implemented
+
     private JPanel rootPanel;
     private JList listOfGames;
     private JButton detailsButton;
@@ -29,26 +28,16 @@ public class LottoResultGui {
     private JLabel numberOfWinnersField;
     private JScrollPane scrollPane;
 
-
     public LottoResultGui() {
-
         returnToMainPanelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 // Close the current JFrame (mainFrame)
                 JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(rootPanel);
-                mainFrame.dispose();
-
-                // Create a new JFrame to display the check results
-                JFrame frame = new JFrame("Napoleon Cricket Club Lotto");
-
-                LottoGui lottoGui = new LottoGui();
-
-
-                // Set the content pane of the new JFrame to the LottoResultGui
-                frame.setContentPane(lottoGui.getRootPanel());
-                // Add a WindowListener to the frame
+                mainFrame.dispose(); // Close the current JFrame
+                JFrame frame = new JFrame("Napoleon Cricket Club Lotto"); // Create a new JFrame
+                LottoGui lottoGui = new LottoGui(); // Create a new instance of LottoGui
+                frame.setContentPane(lottoGui.getRootPanel()); // Set the content pane of the frame to the root panel of LottoGui
                 frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close
 
                 // Add a WindowListener to the frame
@@ -60,123 +49,81 @@ public class LottoResultGui {
                         if (option == JOptionPane.YES_OPTION) {
                             LottoGame lottoGame = new LottoGame();
                             // If the user confirms, close the frame
-                            lottoGame.backupFolder(); // Reset the game
+                            lottoGame.saveGame();
                             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                         }
                     }
                 });
 
-                // Pack the frame to size
-                frame.pack();
-
-                // Center the new JFrame on the screen
-                frame.setLocationRelativeTo(null);
-
-                // Make the frame visible
-                frame.setVisible(true);
-                lottoGui.setDraw();
+                frame.pack(); // Pack the frame
+                frame.setLocationRelativeTo(null); // Center the frame on the screen
+                frame.setVisible(true); // Set the frame to be visible
+                lottoGui.setDraw(); // Call the setDraw method to set the draw numbers
             }
         });
+        // Details button calls the getGameById method to open the receipt file for the selected game
         detailsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     // Get the selected game from the list of games
-                    String selectedGame = (String) listOfGames.getSelectedValue();
-                    String[] parts = selectedGame.split(" ");
-                    int gameId = Integer.parseInt(parts[2]);
-                    getGameById(gameId);
+                    String selectedGame = (String) listOfGames.getSelectedValue(); // Get the selected game
+                    String[] parts = selectedGame.split(" "); // Split the string to get the game ID
+                    int gameId = Integer.parseInt(parts[2]); // Get the game ID
+                    getGameById(gameId); // Call the getGameById method to open the receipt file
                 } catch (NullPointerException ex) {
                     JOptionPane.showMessageDialog(null, "Please select a game to view details");
                 }
-
             }
-        }
-        );
+        });
 
+// Find button calls the getGameById method to open the receipt file for the game with the entered ID
         findButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Get the game ID entered by the user
                 try {
-                    int gameId = Integer.parseInt(searchField.getText());
-                    getGameById(gameId);
-                } catch (NumberFormatException ex) {
+                    int gameId = Integer.parseInt(searchField.getText()); // Get the game ID
+                    getGameById(gameId); // Call the getGameById method to open the receipt file
+                } catch (NumberFormatException ex) { // Case where the user enters a non-numeric value
                     JOptionPane.showMessageDialog(null, "Please enter a numeric game ID");
-                } catch (IllegalArgumentException ex) {
+                } catch (IllegalArgumentException ex) { // Case where the game ID entered is not found
                     JOptionPane.showMessageDialog(null, "Enter a valid game ID");
                 }
             }
         });
     }
 
+    // Method to get the root panel of the LottoResultGui
     public JPanel getRootPanel() {
-        // Retrieve games and drawing results from LottoGui (assuming these methods exist)
-        List<LottoGame> games = LottoGui.getGames();
-        int[] drawNumbers = LottoGui.getDrawResults();
+        List<LottoGame> games = LottoGui.getGames(); // Get the list of games played
+        int[] drawNumbers = LottoGui.getDrawResults(); // Get the draw numbers
+        int gamesPlayed = LottoGame.getNextId(); // Get the number of games played
+        int winCounter = LottoGui.getWinCounter(); // Get the number of winner games
 
-        // Get number of games played (assuming getNextId() returns the count of games played)
-        int gamesPlayed = LottoGame.getNextId();
-
-        // Update the list of games displayed in listOfGames using a DefaultListModel
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        for (LottoGame game : games) {
-            listModel.addElement("Game ID: " + game.getId() + " Numbers Played: " + Arrays.toString(game.getGameNumbers()) + " Final Result: " + game.getResult());
+        DefaultListModel<String> listModel = new DefaultListModel<>(); // Insert the game details into the list model
+        for (LottoGame game : games) { // Loop through the list of games
+            listModel.addElement("Game ID: " + game.getId() + " Numbers Played: " + Arrays.toString(game.getGameNumbers()) + " Final Result: " + game.getResult()); // Add the game details to the list model
         }
-        listOfGames.setModel(listModel);
-        scrollPane.setViewportView(listOfGames);
-
-        numberOfWinnersField.setText("Number of Winner Games: " + lottoGui.getWinCounter());
-
-
-        // Update the numberOfGamesField with the total number of games played
-        numberOfGamesField.setText("Number of games played: " + gamesPlayed);
-
-        // Update the numbersDrawField with the drawn numbers
-        numbersDrawField.setText("Numbers drawn: " + drawNumbers[0] + " - " + drawNumbers[1] + " - " + drawNumbers[2] + " - " + drawNumbers[3]);
-
-        // Assuming rootPanel is correctly initialized and set up in your GUI class
-        return rootPanel;
+        listOfGames.setModel(listModel); // Set the list model to the JList
+        scrollPane.setViewportView(listOfGames); // Add the JList to the scroll pane
+        numberOfWinnersField.setText("Number of Winner Games: " + winCounter); // Update the numberOfWinnersField with the number of winner games
+        numberOfGamesField.setText("Number of games played: " + gamesPlayed); // Update the numberOfGamesField with the number of games played
+        numbersDrawField.setText("Numbers drawn: " + drawNumbers[0] + " - " + drawNumbers[1] + " - " + drawNumbers[2] + " - " + drawNumbers[3]); // Update the numbersDrawField with the numbers drawn
+        return rootPanel; // Return the root panel
     }
 
-
-// TO BE IMPLEMENTED
-// This panel will have a JList to display the game results and a button to allow the user to view the details of a game (Extra feature)
-// At click of the button, the receipt file for the selected game will be opened
-
-//There will be two panels in the GUI, one with the number of games played and the other with the number of games won
-
-//There will be a form to allow the user to search for a game by ID (Extra feature)
-//The user will enter the game ID in a text field and click a button to search for the game
-//If the game is found, the details of the game receipt will be displayed in a new window
-//If the game is not found, an error message will be displayed
-
-    public void setGames(ArrayList<LottoGame> games) {
-        this.games = games;
-    }
-
-    public void setDrawNumbers(int[] drawNumbers) {
-        this.drawNumbers = drawNumbers;
-    }
-
-    public void setGamesPlayed(int gamesPlayed) {
-        this.gamesPlayed = gamesPlayed;
-    }
-
-
-
+    // Method to open the receipt file for the selected game
     private void getGameById(int gameId) {
-        // Open the receipt file for the selected game
         String fileName = "receipt" + gameId + ".txt";  // File name will be receipt followed by the game ID
         String path = System.getProperty("user.dir") + java.io.File.separator + "LottoGame" + java.io.File.separator + fileName;  // Path to the file
         java.io.File file = new java.io.File(path); // Create a new file object
         try {
             // Open the file using the default text editor
             if (!file.exists()) {
-                JOptionPane.showMessageDialog(null, "Receipt number " + gameId + " does not exist");
-                return;
+                JOptionPane.showMessageDialog(null, "Receipt number " + gameId + " does not exist"); // Display an error message if the file does not exist
             } else {
-            java.awt.Desktop.getDesktop().edit(file);
+                java.awt.Desktop.getDesktop().edit(file); // Open the file using the default text editor
             }
         } catch (java.io.IOException ex) {
             JOptionPane.showMessageDialog(null, "Error opening receipt file or file does not exist");
